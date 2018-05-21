@@ -3,6 +3,7 @@
 namespace Evence\Bundle\SoftDeleteableExtensionBundle\EventListener;
 
 use Doctrine\Common\Annotations\AnnotationReader;
+use Doctrine\ORM\EntityManagerInterface;
 use Doctrine\ORM\Event\LifecycleEventArgs;
 use Doctrine\ORM\Mapping\Column;
 use Doctrine\ORM\Mapping\Id;
@@ -13,6 +14,7 @@ use Evence\Bundle\SoftDeleteableExtensionBundle\Mapping\Annotation\onSoftDelete;
 use Gedmo\Mapping\ExtensionMetadataFactory;
 use Symfony\Component\DependencyInjection\ContainerAwareTrait;
 use Symfony\Component\PropertyAccess\PropertyAccess;
+use Symfony\Component\Yaml\Yaml;
 
 /**
  * Soft delete listener class for onSoftDelete behaviour.
@@ -26,6 +28,9 @@ class SoftDeleteListener
 {
     use ContainerAwareTrait;
 
+    /** @var EntityManagerInterface */
+    private $em;
+
     /**
      * @param LifecycleEventArgs $args
      *
@@ -33,15 +38,25 @@ class SoftDeleteListener
      */
     public function preSoftDelete(LifecycleEventArgs $args)
     {
-        $em = $args->getEntityManager();
-        $uow = $em->getUnitOfWork();
+        $this->em = $args->getEntityManager();
         $entity = $args->getEntity();
 
         $entityReflection = new \ReflectionObject($entity);
 
-        $namespaces = $em->getConfiguration()
-            ->getMetadataDriverImpl()
-            ->getAllClassNames();
+        if($this->container->hasParameter('evence_class_map_path')) {
+            if (($file = $this->container->getParameter('evence_class_map_path')) && file_exists($file)) {
+                $namespaces = Yaml::parse(file_get_contents($file));
+            }
+        }
+
+        if(isset($namespaces)){
+            $namespaces = isset($namespaces[$entityReflection->getName()]) ? $namespaces[$entityReflection->getName()] : array();
+            return $this->processNamespacesFromMap($namespaces, $entity);
+        }else{
+            $namespaces = $this->em->getConfiguration()
+                ->getMetadataDriverImpl()
+                ->getAllClassNames();
+        }
 
         $reader = new AnnotationReader();
         foreach ($namespaces as $namespace) {
@@ -50,103 +65,213 @@ class SoftDeleteListener
                 continue;
             }
 
-            $meta = $em->getClassMetadata($namespace);
             foreach ($reflectionClass->getProperties() as $property) {
                 if ($onDelete = $reader->getPropertyAnnotation($property, 'Evence\Bundle\SoftDeleteableExtensionBundle\Mapping\Annotation\onSoftDelete')) {
                     $objects = null;
                     $manyToMany = null;
                     $manyToOne = null;
-                    $oneToOne = null;
-                    if (
-                        ($manyToOne = $reader->getPropertyAnnotation($property, 'Doctrine\ORM\Mapping\ManyToOne')) ||
-                        ($manyToMany = $reader->getPropertyAnnotation($property, 'Doctrine\ORM\Mapping\ManyToMany')) ||
-                        ($oneToOne = $reader->getPropertyAnnotation($property, 'Doctrine\ORM\Mapping\OneToOne'))
-                    ) {
+                    if (($manyToOne = $reader->getPropertyAnnotation($property, 'Doctrine\ORM\Mapping\ManyToOne')) || ($manyToMany = $reader->getPropertyAnnotation($property, 'Doctrine\ORM\Mapping\ManyToMany'))) {
 
-                        $relationship = $manyToOne ?: $manyToMany ?: $oneToOne;
+                        if($manyToOne)
+                            $relationship = $manyToOne;
+                        else
+                            $relationship = $manyToMany;
 
                         $ns = null;
                         $nsOriginal = $relationship->targetEntity;
                         $nsFromRelativeToAbsolute = $entityReflection->getNamespaceName().'\\'.$relationship->targetEntity;
                         $nsFromRoot = '\\'.$relationship->targetEntity;
                         if(class_exists($nsOriginal)){
-                           $ns = $nsOriginal;
+                            $ns = $nsOriginal;
                         }
                         elseif(class_exists($nsFromRoot)){
-                          $ns = $nsFromRoot;
+                            $ns = $nsFromRoot;
                         }
                         elseif(class_exists($nsFromRelativeToAbsolute)){
-                           $ns = $nsFromRelativeToAbsolute;
+                            $ns = $nsFromRelativeToAbsolute;
                         }
 
-                        if (($manyToOne || $oneToOne) && $ns && $entity instanceof $ns) {
-                            $objects = $em->getRepository($namespace)->findBy(array(
-                                $property->name => $entity,
-                            ));
+                        if ($manyToOne && $ns && $entity instanceof $ns) {
+
+                            $objects = $this->getManyToOneObjects($namespace, $entity, $property);
                         }
                         elseif($manyToMany) {
 
-                            // For ManyToMany relations, we only delete the relationship between
-                            // two entities. This can be done on both side of the relation.
-                            $allowMappedSide = get_class($entity) === $namespace;
-                            $allowInversedSide = ($ns && $entity instanceof $ns);
-                            if ($allowMappedSide || $allowInversedSide) {
-
-                                if (strtoupper($onDelete->type) === 'SET NULL') {
-                                    throw new \Exception('SET NULL is not supported for ManyToMany relationships');
-                                }
-
-                                try {
-                                    $propertyAccessor = PropertyAccess::createPropertyAccessor();
-                                    $collection = $propertyAccessor->getValue($entity, $property->name);
-                                    $collection->clear();
-                                    continue;
-                                } catch (\Exception $e) {
-                                    throw new \Exception(sprintf('No accessor found for %s in %s', $property->name, get_class($entity)));
-                                }
+                            if (strtoupper($onDelete->type) === 'SET NULL') {
+                                throw new \Exception('SET NULL is not supported for ManyToMany relationships');
                             }
+
+                            $objects = $this->getManyToManyObjects($namespace, $entity, $property);
+
                         }
                     }
 
                     if ($objects) {
-                        $factory = $em->getMetadataFactory();
-                        $cacheDriver = $factory->getCacheDriver();
-                        $cacheId = ExtensionMetadataFactory::getCacheId($namespace, 'Gedmo\SoftDeleteable');
-                        $softDelete = false;
-                        if (($config = $cacheDriver->fetch($cacheId)) !== false) {
-                            $softDelete = isset($config['softDeleteable']) && $config['softDeleteable'];
-                        }
-                        foreach ($objects as $object) {
-                            if (strtoupper($onDelete->type) === 'SET NULL') {
-                                $reflProp = $meta->getReflectionProperty($property->name);
-                                $oldValue = $reflProp->getValue($object);
 
-                                $reflProp->setValue($object, null);
-                                $em->persist($object);
-
-                                $uow->propertyChanged($object, $property->name, $oldValue, null);
-                                $uow->scheduleExtraUpdate($object, array(
-                                    $property->name => array($oldValue, null),
-                                ));
-                            } elseif (strtoupper($onDelete->type) === 'CASCADE') {
-                                if ($softDelete) {
-                                    $this->softDeleteCascade($em, $config, $object);
-                                } else {
-                                    $em->remove($object);
-                                }
-                            } else {
-                                throw new OnSoftDeleteUnknownTypeException($onDelete->type);
-                            }
-                        }
+                        $this->processObjects($objects, $namespace, $property, $onDelete->type);
                     }
                 }
             }
         }
     }
 
-    protected function softDeleteCascade($em, $config, $object)
+    /**
+     * @param $namespaceList
+     * @param $entity
+     * @return bool
+     * @throws \Doctrine\Common\Annotations\AnnotationException
+     * @throws \ReflectionException
+     */
+    protected function processNamespacesFromMap($namespaceList, $entity): bool
     {
-        $meta = $em->getClassMetadata(get_class($object));
+        $reader = new AnnotationReader();
+
+        foreach ($namespaceList as $propertyName => $namespaces){
+            foreach ($namespaces as $namespace){
+                $reflectionClass = new \ReflectionClass($namespace);
+                $property = $reflectionClass->getProperty($propertyName);
+
+                if ($onDelete = $reader->getPropertyAnnotation($property, 'Evence\Bundle\SoftDeleteableExtensionBundle\Mapping\Annotation\onSoftDelete')) {
+                    if (($manyToOne = $reader->getPropertyAnnotation($property, 'Doctrine\ORM\Mapping\ManyToOne'))) {
+
+                        $objects = $this->getManyToOneObjects($namespace, $entity, $property);
+
+                    } elseif ($manyToMany = $reader->getPropertyAnnotation($property, 'Doctrine\ORM\Mapping\ManyToMany')) {
+                        if (strtoupper($onDelete->type) === 'SET NULL') {
+                            throw new \Exception('SET NULL is not supported for ManyToMany relationships');
+                        }
+
+                        $objects = $this->getManyToManyObjects($namespace, $entity, $property);
+                    }
+                }
+
+                if($objects){
+                    $this->processObjects($objects, $namespace, $property, $onDelete->type);
+                }
+            }
+        }
+
+        return true;
+    }
+
+    /**
+     * @param $namespace
+     * @param $entity
+     * @param $property
+     * @return array
+     */
+    protected function getManyToOneObjects($namespace, $entity, $property)
+    {
+        return $this->em->getRepository($namespace)->findBy(array(
+            $property->name => $entity,
+        ));
+    }
+
+    /**
+     * @param $namespace
+     * @param $entity
+     * @param $property
+     * @return mixed
+     * @throws \Doctrine\Common\Annotations\AnnotationException
+     */
+    protected function getManyToManyObjects($namespace, $entity, $property)
+    {
+        $reader = new AnnotationReader();
+        $reflectionClass = new \ReflectionClass($namespace);
+        $entityReflection = new \ReflectionObject($entity);
+
+        $qb = $this->em->getRepository($namespace)->createQueryBuilder('q')
+            ->join('q.' . $property->name, 'j');
+
+        /** @var JoinTable $joinTable */
+        $joinTable = $reader->getPropertyAnnotation($property, 'Doctrine\ORM\Mapping\JoinTable');
+
+        if(!$joinTable){
+            throw new \Exception('No joinTable found for the relationship ' . $namespace. '#'. $property->name);
+        }
+
+        $columns = $joinTable->joinColumns;
+        $inversedColumns = $joinTable->inverseJoinColumns;
+
+        if (count($columns) > 1) {
+            throw new \Exception('Only one joinColumn is supported!');
+        }
+
+        if (count($inversedColumns) > 1) {
+            throw new \Exception('Only one inversedJoinColumns is supported!');
+        }
+
+        /** @var JoinColumn $joinColumn */
+        $joinColumn = $columns[0];
+        $joinProperty = $this->getPropertyByColumName($reflectionClass, $joinColumn);
+
+        /** @var JoinColumn $joinColumn */
+        $inversedColumn = $inversedColumns[0];
+        $inversedJoinProperty = $this->getPropertyByColumName($entityReflection, $inversedColumn);
+
+
+
+        if (!$joinProperty){
+            throw new \Exception('No joinColumn found for the relationship between ' .$namespace . ' and '. get_class($entity));
+        }
+
+
+        if (!$inversedJoinProperty){
+            throw new \Exception('No joinColumn found for the relationship between ' .$namespace . ' and '. get_class($entity));
+        }
+
+        $propertyAccessor = PropertyAccess::createPropertyAccessor();
+        $joinValue = $propertyAccessor->getValue($entity, $inversedJoinProperty->name);
+
+        $qb->where($qb->expr()->eq('j.'.$joinProperty->name,$joinValue ));
+
+        return $qb->getQuery()->getResult();
+    }
+
+    /**
+     * @param $objects
+     * @param $namespace
+     * @param $property
+     * @param $deleteType
+     */
+    protected function processObjects($objects, $namespace, $property, $deleteType)
+    {
+        $uow = $this->em->getUnitOfWork();
+        $factory = $this->em->getMetadataFactory();
+        $cacheDriver = $factory->getCacheDriver();
+        $cacheId = ExtensionMetadataFactory::getCacheId($namespace, 'Gedmo\SoftDeleteable');
+        $softDelete = false;
+        if (($config = $cacheDriver->fetch($cacheId)) !== false) {
+            $softDelete = isset($config['softDeleteable']) && $config['softDeleteable'];
+        }
+        $meta = $this->em->getClassMetadata($namespace);
+        foreach ($objects as $object) {
+            if (strtoupper($deleteType) === 'SET NULL') {
+                $reflProp = $meta->getReflectionProperty($property->name);
+                $oldValue = $reflProp->getValue($object);
+
+                $reflProp->setValue($object, null);
+                $this->em->persist($object);
+
+                $uow->propertyChanged($object, $property->name, $oldValue, null);
+                $uow->scheduleExtraUpdate($object, array(
+                    $property->name => array($oldValue, null),
+                ));
+            } elseif (strtoupper($deleteType) === 'CASCADE') {
+                if ($softDelete) {
+                    $this->softDeleteCascade($config, $object);
+                } else {
+                    $this->em->remove($object);
+                }
+            } else {
+                throw new OnSoftDeleteUnknownTypeException($deleteType);
+            }
+        }
+    }
+
+    protected function softDeleteCascade($config, $object)
+    {
+        $meta = $this->em->getClassMetadata(get_class($object));
         $reflProp = $meta->getReflectionProperty($config['fieldName']);
         $oldValue = $reflProp->getValue($object);
         if ($oldValue instanceof \Datetime) {
@@ -154,16 +279,32 @@ class SoftDeleteListener
         }
 
         //check next level
-        $args = new LifecycleEventArgs($object, $em);
+        $args = new LifecycleEventArgs($object, $this->em);
         $this->preSoftDelete($args);
 
         $date = new \DateTime();
         $reflProp->setValue($object, $date);
 
-        $uow = $em->getUnitOfWork();
+        $uow = $this->em->getUnitOfWork();
         $uow->propertyChanged($object, $config['fieldName'], $oldValue, $date);
         $uow->scheduleExtraUpdate($object, array(
             $config['fieldName'] => array($oldValue, $date),
         ));
+    }
+
+    private function getPropertyByColumName(\ReflectionClass $entityReflection, $name){
+
+        $reader = new AnnotationReader();
+
+        foreach ($entityReflection->getProperties() as $p) {
+            /** @var $column Column */
+            if (($id = $reader->getPropertyAnnotation($p, Id::class)) &&
+                ($column = $reader->getPropertyAnnotation($p, Column::class)) &&
+                $column->name == $name
+            ) {
+
+                return $p;
+            }
+        }
     }
 }
