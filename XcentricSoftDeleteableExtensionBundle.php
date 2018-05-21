@@ -1,6 +1,6 @@
 <?php
 
-namespace Xcentric\Bundle\SoftDeleteableExtensionBundle;
+namespace Xcentric\SoftDeleteableExtensionBundle;
 
 use Symfony\Component\HttpKernel\Bundle\Bundle;
 

@@ -22,6 +22,6 @@
         "symfony/yaml": "*"
     },
     "autoload": {
-        "psr-4": {"Xcentric\\SoftDeleteableCascade\\": ""}
+        "psr-4": {"Xcentric\\SoftDeleteableExtensionBundle\\": ""}
     }
 }

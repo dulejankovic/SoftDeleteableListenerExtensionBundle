@@ -1,6 +1,6 @@
 <?php
 
-namespace Xcentric\Bundle\SoftDeleteableExtensionBundle\EventListener;
+namespace Xcentric\SoftDeleteableExtensionBundle\EventListener;
 
 use Doctrine\Common\Annotations\AnnotationReader;
 use Doctrine\ORM\EntityManagerInterface;

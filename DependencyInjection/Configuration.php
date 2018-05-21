@@ -1,6 +1,6 @@
 <?php
 
-namespace Xcentric\Bundle\SoftDeleteableExtensionBundle\DependencyInjection;
+namespace Xcentric\SoftDeleteableExtensionBundle\DependencyInjection;
 
 use Symfony\Component\Config\Definition\Builder\TreeBuilder;
 use Symfony\Component\Config\Definition\ConfigurationInterface;
