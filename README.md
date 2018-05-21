@@ -27,7 +27,7 @@ namespace AppBundle\Entity;
 
 use Doctrine\ORM\Mapping as ORM;
 use Gedmo\Mapping\Annotation as Gedmo;
-use Xcentric\Bundle\SoftDeleteableExtensionBundle\Mapping\Annotation as Xcentric;
+use Xcentric\SoftDeleteableExtensionBundle\Mapping\Annotation as Xcentric;
 
 /*
  * @ORM\Entity(repositoryClass="AppBundle\Entity\AdvertisementRepository")
@@ -76,6 +76,6 @@ Add the bundle to `app/AppKernel.php`:
 
 $bundles = array(
     ...
-    new Xcentric\Bundle\SoftDeleteableExtensionBundle\XcentricSoftDeleteableExtensionBundle(),
+    new Xcentric\SoftDeleteableExtensionBundle\XcentricSoftDeleteableExtensionBundle(),
 );
 ```

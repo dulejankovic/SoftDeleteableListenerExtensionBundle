@@ -47,7 +47,7 @@ class GenerateClassMapCommand extends ContainerAwareCommand
 
             $meta = $em->getClassMetadata($namespace);
             foreach ($reflectionClass->getProperties() as $property) {
-                if ($onDelete = $reader->getPropertyAnnotation($property, 'Xcentric\Bundle\SoftDeleteableExtensionBundle\Mapping\Annotation\onSoftDelete')) {
+                if ($onDelete = $reader->getPropertyAnnotation($property, 'Xcentric\SoftDeleteableExtensionBundle\Mapping\Annotation\onSoftDelete')) {
                     $objects = null;
                     $manyToMany = null;
                     $manyToOne = null;

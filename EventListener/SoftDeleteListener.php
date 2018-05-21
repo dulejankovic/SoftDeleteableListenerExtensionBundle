@@ -9,8 +9,8 @@ use Doctrine\ORM\Mapping\Column;
 use Doctrine\ORM\Mapping\Id;
 use Doctrine\ORM\Mapping\JoinColumn;
 use Doctrine\ORM\Mapping\JoinTable;
-use Xcentric\Bundle\SoftDeleteableExtensionBundle\Exception\OnSoftDeleteUnknownTypeException;
-use Xcentric\Bundle\SoftDeleteableExtensionBundle\Mapping\Annotation\onSoftDelete;
+use Xcentric\SoftDeleteableExtensionBundle\Exception\OnSoftDeleteUnknownTypeException;
+use Xcentric\SoftDeleteableExtensionBundle\Mapping\Annotation\onSoftDelete;
 use Gedmo\Mapping\ExtensionMetadataFactory;
 use Symfony\Component\DependencyInjection\ContainerAwareTrait;
 use Symfony\Component\PropertyAccess\PropertyAccess;
@@ -66,7 +66,7 @@ class SoftDeleteListener
             }
 
             foreach ($reflectionClass->getProperties() as $property) {
-                if ($onDelete = $reader->getPropertyAnnotation($property, 'Xcentric\Bundle\SoftDeleteableExtensionBundle\Mapping\Annotation\onSoftDelete')) {
+                if ($onDelete = $reader->getPropertyAnnotation($property, 'Xcentric\SoftDeleteableExtensionBundle\Mapping\Annotation\onSoftDelete')) {
                     $objects = null;
                     $manyToMany = null;
                     $manyToOne = null;
@@ -131,7 +131,7 @@ class SoftDeleteListener
                 $reflectionClass = new \ReflectionClass($namespace);
                 $property = $reflectionClass->getProperty($propertyName);
 
-                if ($onDelete = $reader->getPropertyAnnotation($property, 'Xcentric\Bundle\SoftDeleteableExtensionBundle\Mapping\Annotation\onSoftDelete')) {
+                if ($onDelete = $reader->getPropertyAnnotation($property, 'Xcentric\SoftDeleteableExtensionBundle\Mapping\Annotation\onSoftDelete')) {
                     if (($manyToOne = $reader->getPropertyAnnotation($property, 'Doctrine\ORM\Mapping\ManyToOne'))) {
 
                         $objects = $this->getManyToOneObjects($namespace, $entity, $property);
