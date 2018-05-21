@@ -14,7 +14,7 @@
         "php": "^7.1",
         "doctrine/doctrine-bundle": "^1.6",
         "doctrine/orm": "^2.5",
-        "gedmo/doctrine-extensions": "dev-master",
+        "gedmo/doctrine-extensions": "^2.3.4",
         "symfony/property-access": "^4.0",
         "symfony/dependency-injection": "^3.0",
         "symfony/framework-bundle": "^3.4",
