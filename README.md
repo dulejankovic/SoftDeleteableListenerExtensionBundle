@@ -9,13 +9,13 @@ Provides the `onSoftDelete` functionality to an association of a doctrine entity
 To (soft-)delete an entity when its parent record is soft-deleted :
 
 ```
- @Evence\onSoftDelete(type="CASCADE")
+ @Xcentric\onSoftDelete(type="CASCADE")
 ```
 
 **Set reference to null (instead of deleting the entity)**
 
 ```
- @Evence\onSoftDelete(type="SET NULL")
+ @Xcentric\onSoftDelete(type="SET NULL")
 ```
 
 ## Entity example
@@ -27,7 +27,7 @@ namespace AppBundle\Entity;
 
 use Doctrine\ORM\Mapping as ORM;
 use Gedmo\Mapping\Annotation as Gedmo;
-use Evence\Bundle\SoftDeleteableExtensionBundle\Mapping\Annotation as Evence;
+use Xcentric\Bundle\SoftDeleteableExtensionBundle\Mapping\Annotation as Xcentric;
 
 /*
  * @ORM\Entity(repositoryClass="AppBundle\Entity\AdvertisementRepository")
@@ -41,7 +41,7 @@ class Advertisement
     /**
      * @ORM\ManyToOne(targetEntity="AppBundle\Entity\Shop")
      * @ORM\JoinColumn(name="shop_id", referencedColumnName="id")
-     * @Evence\onSoftDelete(type="CASCADE")
+     * @Xcentric\onSoftDelete(type="CASCADE")
      */
     private $shop;
 
@@ -49,11 +49,24 @@ class Advertisement
 }
 ```
 
+**Optional - Caching class map**
+
+
+Add property `xcentric_class_map_path`
+
+``` php
+# app/config/parameters.yml
+
+    xcentric_class_map_path: full_file_path/classMap.yml
+```
+
+Execute command `xcentric:softdelete:map:generate`
+
 ## Install
 
 **Install with composer:**
 ```
-composer require evence/soft-deleteable-extension-bundle
+composer require xcentric/soft-deleteable-extension-bundle
 ```
 
 Add the bundle to `app/AppKernel.php`:
@@ -63,6 +76,6 @@ Add the bundle to `app/AppKernel.php`:
 
 $bundles = array(
     ...
-    new Evence\Bundle\SoftDeleteableExtensionBundle\EvenceSoftDeleteableExtensionBundle(),
+    new Xcentric\Bundle\SoftDeleteableExtensionBundle\XcentricSoftDeleteableExtensionBundle(),
 );
 ```

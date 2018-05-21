@@ -1,6 +1,6 @@
 <?php
 
-namespace Evence\Bundle\SoftDeleteableExtensionBundle\Exception;
+namespace Xcentric\Bundle\SoftDeleteableExtensionBundle\Exception;
 
 class OnSoftDeleteUknownTypeException extends \Exception
 {

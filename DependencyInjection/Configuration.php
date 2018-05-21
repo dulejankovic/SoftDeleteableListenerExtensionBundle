@@ -1,6 +1,6 @@
 <?php
 
-namespace Evence\Bundle\SoftDeleteableExtensionBundle\DependencyInjection;
+namespace Xcentric\Bundle\SoftDeleteableExtensionBundle\DependencyInjection;
 
 use Symfony\Component\Config\Definition\Builder\TreeBuilder;
 use Symfony\Component\Config\Definition\ConfigurationInterface;
@@ -18,7 +18,7 @@ class Configuration implements ConfigurationInterface
     public function getConfigTreeBuilder()
     {
         $treeBuilder = new TreeBuilder();
-        $rootNode = $treeBuilder->root('evence_soft_deleteable_extension');
+        $rootNode = $treeBuilder->root('xcentric_soft_deleteable_extension');
 
         // Here you should define the parameters that are allowed to
         // configure your bundle. See the documentation linked above for

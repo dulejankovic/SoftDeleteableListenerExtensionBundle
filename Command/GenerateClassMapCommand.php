@@ -1,6 +1,6 @@
 <?php
 
-namespace Evence\Bundle\SoftDeleteableExtensionBundle\Command;
+namespace Xcentric\Bundle\SoftDeleteableExtensionBundle\Command;
 
 use Symfony\Bundle\FrameworkBundle\Command\ContainerAwareCommand;
 use Symfony\Component\Console\Input\InputInterface;
@@ -21,7 +21,7 @@ class GenerateClassMapCommand extends ContainerAwareCommand
     protected function configure()
     {
         $this
-            ->setName('evence:map:generate')
+            ->setName('xcentric:softdelete:map:generate')
             ->setDescription('Generate calss map.');
     }
 
@@ -30,8 +30,8 @@ class GenerateClassMapCommand extends ContainerAwareCommand
         $map = array();
         $em = $this->getContainer()->get('doctrine.orm.entity_manager');
 
-        if (!($filePath = $this->getContainer()->getParameter('evence_class_map_path'))) {
-            exit("Missing propery evence_class_map_path");
+        if (!($filePath = $this->getContainer()->getParameter('softdelete_class_map_path'))) {
+            exit("Missing propery xcentric_class_map_path");
         }
 
         $namespaces = $em->getConfiguration()
@@ -47,7 +47,7 @@ class GenerateClassMapCommand extends ContainerAwareCommand
 
             $meta = $em->getClassMetadata($namespace);
             foreach ($reflectionClass->getProperties() as $property) {
-                if ($onDelete = $reader->getPropertyAnnotation($property, 'Evence\Bundle\SoftDeleteableExtensionBundle\Mapping\Annotation\onSoftDelete')) {
+                if ($onDelete = $reader->getPropertyAnnotation($property, 'Xcentric\Bundle\SoftDeleteableExtensionBundle\Mapping\Annotation\onSoftDelete')) {
                     $objects = null;
                     $manyToMany = null;
                     $manyToOne = null;

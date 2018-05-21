@@ -1,29 +1,27 @@
 {
-    "name": "evence/soft-deleteable-extension-bundle",
-    "description": "Provides exta functions to the soft deleteable listener of gedmo",
+    "name": "xcentric/soft-deleteable-extension-bundle",
+    "description": "Provides cascade functionality to Gedmo Doctrine Extensions soft-delete. Adjusted from E-vence/SoftDeleteableListenerExtensionBundle to be framework-independent.",
     "authors": [{
+        "name": "Dusan Jankovic",
+        "homepage": "https://github.com/dulejankovic/SoftDeleteableListenerExtensionBundle"
+    }, {
         "name": "Ruben Harms",
         "homepage": "http://www.rubenharms.nl/"
     }],
-    "keywords": ["soft-deleteable"],
+    "type": "symfony-bundle",
+    "keywords": ["soft-deleteable", "doctrine",  "doctrine-extensions", "gedmo"],
     "require": {
-        "php": ">=5.3.3 || >=7.1.3",
-        "symfony/framework-bundle": "~2.0 || ~3.0 || ~4.0"
+        "php": "^7.1",
+        "doctrine/doctrine-bundle": "^1.6",
+        "doctrine/orm": "^2.5",
+        "gedmo/doctrine-extensions": "dev-master",
+        "symfony/property-access": "^4.0",
+        "symfony/dependency-injection": "^3.0",
+        "symfony/framework-bundle": "^3.4",
+        "symfony/yaml": "*"
     },
-    "require-dev": {
-        "symfony/console": "~2.0 || ~3.0 || ~4.0"
-    },
-    "target-dir": "Evence/Bundle/SoftDeleteableExtensionBundle",
     "minimum-stability": "dev",
-    "extra": {
-        "branch-alias": {
-            "dev-master": "0.1-dev"
-        }
-    },
     "autoload": {
-        "psr-0": {
-            "Evence\\Bundle\\SoftDeleteableExtensionBundle": ""
-        }
-    },
-    "type": "symfony-bundle"
+        "psr-4": {"Xcentric\\SoftDeleteableCascade\\": ""}
+    }
 }

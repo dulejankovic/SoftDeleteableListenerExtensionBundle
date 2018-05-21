@@ -1,6 +1,6 @@
 <?php
 
-namespace Evence\Bundle\SoftDeleteableExtensionBundle\Mapping\Annotation;
+namespace Xcentric\Bundle\SoftDeleteableExtensionBundle\Mapping\Annotation;
 
 use Doctrine\Common\Annotations\Annotation;
 
