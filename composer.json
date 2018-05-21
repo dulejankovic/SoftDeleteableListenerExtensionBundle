@@ -1,6 +1,6 @@
 {
     "name": "xcentric/soft-deleteable-extension-bundle",
-    "description": "Provides cascade functionality to Gedmo Doctrine Extensions soft-delete. Adjusted from E-vence/SoftDeleteableListenerExtensionBundle to be framework-independent.",
+    "description": "Provides cascade functionality to Gedmo Doctrine Extensions soft-delete. Adjusted from E-vence/SoftDeleteableListenerExtensionBundle.",
     "authors": [{
         "name": "Dusan Jankovic",
         "homepage": "https://github.com/dulejankovic/SoftDeleteableListenerExtensionBundle"
@@ -20,7 +20,6 @@
         "symfony/framework-bundle": "^3.4",
         "symfony/yaml": "*"
     },
-    "minimum-stability": "dev",
     "autoload": {
         "psr-4": {"Xcentric\\SoftDeleteableCascade\\": ""}
     }
