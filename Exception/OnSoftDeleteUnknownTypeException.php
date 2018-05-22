@@ -2,7 +2,7 @@
 
 namespace Xcentric\SoftDeleteableExtensionBundle\Exception;
 
-class OnSoftDeleteUknownTypeException extends \Exception
+class OnSoftDeleteUnknownTypeException extends \Exception
 {
     public function __construct($type)
     {
