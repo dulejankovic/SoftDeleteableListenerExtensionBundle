@@ -15,6 +15,8 @@ use Symfony\Component\Yaml\Yaml;
  */
 class GenerateClassMapCommand extends ContainerAwareCommand
 {
+    const RELATION_TYPE_MANY_TO_MANY = 'manyToMany';
+    const RELATION_TYPE_MANY_TO_ONE = 'manyToOne';
     /**
      * {@inheritdoc}
      */
@@ -53,10 +55,13 @@ class GenerateClassMapCommand extends ContainerAwareCommand
                     $manyToOne = null;
                     if (($manyToOne = $reader->getPropertyAnnotation($property, 'Doctrine\ORM\Mapping\ManyToOne')) || ($manyToMany = $reader->getPropertyAnnotation($property, 'Doctrine\ORM\Mapping\ManyToMany'))) {
 
-                        if($manyToOne)
+                        if($manyToOne) {
                             $relationship = $manyToOne;
-                        else
+                            $relationType = self::RELATION_TYPE_MANY_TO_ONE;
+                        }else {
                             $relationship = $manyToMany;
+                            $relationType = self::RELATION_TYPE_MANY_TO_MANY;
+                        }
 
                         $ns = null;
                         $nsOriginal = $relationship->targetEntity;
@@ -68,7 +73,11 @@ class GenerateClassMapCommand extends ContainerAwareCommand
                             $ns = $nsFromRoot;
                         }
 
-                        $map[$ns][$property->getName()][] = $reflectionClass->getName();
+                        $map[$ns][$property->getName()][] = array(
+                            "namespace" => $reflectionClass->getName(),
+                            "onDeleteType" => $onDelete->type,
+                            "relationType" => $relationType
+                        );
                     }
                 }
             }

@@ -1,0 +1,30 @@
+services:
+  xcentric.softdeletale.listener.softdelete:
+    class: Xcentric\SoftDeleteableExtensionBundle\EventListener\SoftDeleteListener
+    arguments: ['@service_container']
+    tags:
+      - {name: doctrine.event_listener, event: preSoftDelete}
+
+  config.builder.factory:
+      class: Xcentric\SoftDeleteableExtensionBundle\Service\Config\ConfigBuilderFactory
+      arguments: ['@service_container']
+
+  config.builder.yml:
+    class: Xcentric\SoftDeleteableExtensionBundle\Service\Config\Builder\Yaml
+    arguments: ['@service_container']
+
+  config.builder.annotation:
+    class: Xcentric\SoftDeleteableExtensionBundle\Service\Config\Builder\Yaml
+    arguments: ['@service_container']
+
+  on_soft_delete.processor:
+    class: Xcentric\SoftDeleteableExtensionBundle\Service\SoftDeleteProcessor\ProcessByConfig
+    arguments: ['@service_container', '@doctrine.orm.entity_manager']
+
+  many_to_many.objects.getter:
+    class: Xcentric\SoftDeleteableExtensionBundle\Service\SoftDeleteProcessor\ObjectGetter\Strategy\ManyToManyObjectGetter
+    arguments: ['@doctrine.orm.entity_manager']
+
+  many_to_one.objects.getter:
+    class: Xcentric\SoftDeleteableExtensionBundle\Service\SoftDeleteProcessor\ObjectGetter\Strategy\ManyToOneObjectGetter
+    arguments: ['@doctrine.orm.entity_manager']
