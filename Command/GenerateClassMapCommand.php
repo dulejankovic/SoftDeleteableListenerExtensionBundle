@@ -30,7 +30,7 @@ class GenerateClassMapCommand extends ContainerAwareCommand
         $map = array();
         $em = $this->getContainer()->get('doctrine.orm.entity_manager');
 
-        if (!($filePath = $this->getContainer()->getParameter('softdelete_class_map_path'))) {
+        if (!($filePath = $this->getContainer()->getParameter('xcentric_class_map_path'))) {
             exit("Missing propery xcentric_class_map_path");
         }
 
