@@ -10,6 +10,7 @@ use Doctrine\ORM\Mapping\Id;
 use Doctrine\ORM\Mapping\JoinColumn;
 use Doctrine\ORM\Mapping\JoinTable;
 use Symfony\Component\DependencyInjection\Container;
+use Xcentric\SoftDeleteableExtensionBundle\Exception\OnSoftDeleteMapFileNotFoundException;
 use Xcentric\SoftDeleteableExtensionBundle\Exception\OnSoftDeleteUnknownTypeException;
 use Xcentric\SoftDeleteableExtensionBundle\Mapping\Annotation\onSoftDelete;
 use Gedmo\Mapping\ExtensionMetadataFactory;
@@ -60,10 +61,10 @@ class SoftDeleteListener
                 $configBuilder = $this->container->get('config.builder.factory')->instance(ConfigBuilder::TYPE_YAML);
                 $configBuilder->setConfig(file_get_contents($file));
                 $configData = $configBuilder->buildByClassName($entityReflection->getName());
+            } else {
+                throw new OnSoftDeleteMapFileNotFoundException($file);
             }
-        }
-
-        if(!isset($configData)){
+        } else {
             /** @var ConfigBuilder $configBuilder */
             $configBuilder = $this->container->get('config.builder.factory')->instance(ConfigBuilder::TYPE_ANNOTATION);
             $configData = $configBuilder->buildByClassName($entityReflection->getName());
