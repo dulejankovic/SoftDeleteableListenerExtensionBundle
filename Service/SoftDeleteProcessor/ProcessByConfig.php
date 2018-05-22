@@ -53,7 +53,7 @@ class ProcessByConfig
             $property = $reflectionClass->getProperty($config->getProperty());
 
             /** @var ObjectGetterInterface $objectsGetter */
-            $objectsGetter = $this->container->get('on_soft_delete.processor')->instance($config->getRelationType());
+            $objectsGetter = $this->container->get('objects.getter.factory')->instance($config->getRelationType());
 
             $objects = $objectsGetter->getObjects($config->getClass(), $entity, $property);
 

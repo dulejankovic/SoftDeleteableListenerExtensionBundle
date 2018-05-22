@@ -46,15 +46,17 @@ class Yaml implements ConfigBuilder
             return $configurations;
         }
 
-        foreach ($this->config[$className] as $property => $value) {
-            $cacheConfig = new ClassConfig();
+        foreach ($this->config[$className] as $property => $values) {
+            foreach ($values as $value) {
+                $cacheConfig = new ClassConfig();
 
-            $cacheConfig->setClass($value['namespace']);
-            $cacheConfig->setProperty($property);
-            $cacheConfig->setOnDeleteType($value['onDeleteType']);
-            $cacheConfig->setRelationType($value['relationType']);
+                $cacheConfig->setClass($value['namespace']);
+                $cacheConfig->setProperty($property);
+                $cacheConfig->setOnDeleteType($value['onDeleteType']);
+                $cacheConfig->setRelationType($value['relationType']);
 
-            $configurations[] = $cacheConfig;
+                $configurations[] = $cacheConfig;
+            }
         }
 
 

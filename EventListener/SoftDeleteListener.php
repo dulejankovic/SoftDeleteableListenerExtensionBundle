@@ -70,7 +70,7 @@ class SoftDeleteListener
             $configData = $configBuilder->buildByClassName($entityReflection->getName());
         }
 
-        if(!isset($configData)) {
+        if(isset($configData)) {
             /** @var ProcessByConfig $processor */
             $processor = $this->container->get('on_soft_delete.processor');
             $processor->processEntityByConfig($entity, $configData);

@@ -21,6 +21,10 @@ services:
     class: Xcentric\SoftDeleteableExtensionBundle\Service\SoftDeleteProcessor\ProcessByConfig
     arguments: ['@service_container', '@doctrine.orm.entity_manager']
 
+  objects.getter.factory:
+    class: Xcentric\SoftDeleteableExtensionBundle\Service\SoftDeleteProcessor\ObjectGetter\ObjectGetterFactory
+    arguments: ['@service_container']
+
   many_to_many.objects.getter:
     class: Xcentric\SoftDeleteableExtensionBundle\Service\SoftDeleteProcessor\ObjectGetter\Strategy\ManyToManyObjectGetter
     arguments: ['@doctrine.orm.entity_manager']
