@@ -120,29 +120,27 @@ abstract class AbstractProcess
      */
     protected function processNamespacesFromMap($namespaceList, $entity): bool
     {
-        $reader = new AnnotationReader();
-
         foreach ($namespaceList as $propertyName => $namespaces){
             foreach ($namespaces as $namespace){
-                $reflectionClass = new \ReflectionClass($namespace);
+                $reflectionClass = new \ReflectionClass($namespace['namespace']);
                 $property = $reflectionClass->getProperty($propertyName);
 
-                if ($onDelete = $reader->getPropertyAnnotation($property, 'Xcentric\SoftDeleteableExtensionBundle\Mapping\Annotation\onSoftDelete')) {
-                    if (($manyToOne = $reader->getPropertyAnnotation($property, 'Doctrine\ORM\Mapping\ManyToOne'))) {
+                if ($onDelete = $namespace['onDeleteType']) {
+                    if (('manyToOne' == $namespace['relationType'])) {
 
-                        $objects = $this->getManyToOneObjects($namespace, $entity, $property);
+                        $objects = $this->getManyToOneObjects($namespace['namespace'], $entity, $property);
 
-                    } elseif ($manyToMany = $reader->getPropertyAnnotation($property, 'Doctrine\ORM\Mapping\ManyToMany')) {
-                        if (strtoupper($onDelete->type) === 'SET NULL') {
+                    } elseif ('manyToMany' == $namespace['relationType']) {
+                        if (strtoupper($onDelete) === 'SET NULL') {
                             throw new \Exception('SET NULL is not supported for ManyToMany relationships');
                         }
 
-                        $objects = $this->getManyToManyObjects($namespace, $entity, $property);
+                        $objects = $this->getManyToManyObjects($namespace['namespace'], $entity, $property);
                     }
                 }
 
                 if($objects){
-                    $this->processObjects($entity, $objects, $namespace, $property, $onDelete->type);
+                    $this->processObjects($entity, $objects, $namespace['namespace'], $property, $onDelete);
                 }
             }
         }
