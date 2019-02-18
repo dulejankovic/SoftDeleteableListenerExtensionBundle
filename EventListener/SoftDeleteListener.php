@@ -4,6 +4,7 @@ namespace Xcentric\SoftDeleteableExtensionBundle\EventListener;
 
 use Doctrine\ORM\Event\LifecycleEventArgs;
 use Symfony\Component\DependencyInjection\ContainerAwareTrait;
+use Symfony\Component\DependencyInjection\ContainerInterface;
 use Xcentric\SoftDeleteableExtensionBundle\Services\Delete;
 
 /**
@@ -13,6 +14,15 @@ use Xcentric\SoftDeleteableExtensionBundle\Services\Delete;
 class SoftDeleteListener
 {
     use ContainerAwareTrait;
+
+    /**
+     * SoftDeleteListener constructor.
+     * @param ContainerInterface $container
+     */
+    public function __construct(ContainerInterface $container)
+    {
+        $this->container = $container;
+    }
 
     /**
      * @param LifecycleEventArgs $args
