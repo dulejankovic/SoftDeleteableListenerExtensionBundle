@@ -4,14 +4,10 @@ namespace Xcentric\SoftDeleteableExtensionBundle\Services;
 
 use Doctrine\Common\Annotations\AnnotationReader;
 use Doctrine\ORM\EntityManagerInterface;
-use Doctrine\ORM\Event\LifecycleEventArgs;
 use Doctrine\ORM\Mapping\Column;
 use Doctrine\ORM\Mapping\Id;
 use Doctrine\ORM\Mapping\JoinColumn;
 use Doctrine\ORM\Mapping\JoinTable;
-use Xcentric\SoftDeleteableExtensionBundle\Exception\OnSoftDeleteUnknownTypeException;
-use Xcentric\SoftDeleteableExtensionBundle\Mapping\Annotation\onSoftDelete;
-use Gedmo\Mapping\ExtensionMetadataFactory;
 use Symfony\Component\DependencyInjection\ContainerAwareTrait;
 use Symfony\Component\PropertyAccess\PropertyAccess;
 use Symfony\Component\Yaml\Yaml;
