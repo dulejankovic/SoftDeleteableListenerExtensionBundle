@@ -126,7 +126,7 @@ abstract class AbstractProcess
                 $property = $reflectionClass->getProperty($propertyName);
 
                 if ($onDelete = $namespace['onDeleteType']) {
-                    if (('manyToOne' == $namespace['relationType'])) {
+                    if (('manyToOne' == $namespace['relationType']) || 'oneToOne' == $namespace['relationType']) {
 
                         $objects = $this->getManyToOneObjects($namespace['namespace'], $entity, $property);
 

@@ -17,6 +17,7 @@ class GenerateClassMapCommand extends ContainerAwareCommand
 {
     const RELATION_TYPE_MANY_TO_MANY = 'manyToMany';
     const RELATION_TYPE_MANY_TO_ONE = 'manyToOne';
+    const RELATION_TYPE_ONE_TO_ONE = 'oneToOne';
     /**
      * {@inheritdoc}
      */
@@ -62,6 +63,27 @@ class GenerateClassMapCommand extends ContainerAwareCommand
                             $relationship = $manyToMany;
                             $relationType = self::RELATION_TYPE_MANY_TO_MANY;
                         }
+
+                        $ns = null;
+                        $nsOriginal = $relationship->targetEntity;
+                        $nsFromRoot = '\\'.$relationship->targetEntity;
+                        if(class_exists($nsOriginal)){
+                            $ns = $nsOriginal;
+                        }
+                        elseif(class_exists($nsFromRoot)){
+                            $ns = $nsFromRoot;
+                        }
+
+                        $map[$ns][$property->getName()][] = array(
+                            "namespace" => $reflectionClass->getName(),
+                            "onDeleteType" => $onDelete->type,
+                            "relationType" => $relationType
+                        );
+                    }
+                    if ($oneToOne = $reader->getPropertyAnnotation($property, 'Doctrine\ORM\Mapping\OneTOne')) {
+
+                        $relationship = $oneToOne;
+                        $relationType = self::RELATION_TYPE_ONE_TO_ONE;
 
                         $ns = null;
                         $nsOriginal = $relationship->targetEntity;
