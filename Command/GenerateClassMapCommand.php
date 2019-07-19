@@ -80,7 +80,7 @@ class GenerateClassMapCommand extends ContainerAwareCommand
                             "relationType" => $relationType
                         );
                     }
-                    if ($oneToOne = $reader->getPropertyAnnotation($property, 'Doctrine\ORM\Mapping\OneTOne')) {
+                    if ($oneToOne = $reader->getPropertyAnnotation($property, 'Doctrine\ORM\Mapping\OneToOne')) {
 
                         $relationship = $oneToOne;
                         $relationType = self::RELATION_TYPE_ONE_TO_ONE;

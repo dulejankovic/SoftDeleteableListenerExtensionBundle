@@ -57,7 +57,7 @@ Add property `xcentric_class_map_path`
 ``` php
 # app/config/parameters.yml
 
-    xcentric_class_map_path: full_file_path/classMap.yml
+    xcentric_class_map_path: '%kernel.root_dir%/config/classMap.yaml'
 ```
 
 Execute command `xcentric:softdelete:map:generate`

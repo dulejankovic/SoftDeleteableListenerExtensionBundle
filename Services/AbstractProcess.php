@@ -11,6 +11,7 @@ use Doctrine\ORM\Mapping\JoinTable;
 use Symfony\Component\DependencyInjection\ContainerAwareTrait;
 use Symfony\Component\PropertyAccess\PropertyAccess;
 use Symfony\Component\Yaml\Yaml;
+use Doctrine\Common\Util\ClassUtils;
 
 abstract class AbstractProcess
 {
@@ -37,7 +38,7 @@ abstract class AbstractProcess
      */
     public function process($entity)
     {
-        $entityReflection = new \ReflectionObject($entity);
+        $entityReflection = ClassUtils::getClass($entity);
 
         if($this->container->hasParameter('xcentric_class_map_path')) {
             if (($file = $this->container->getParameter('xcentric_class_map_path')) && file_exists($file)) {
@@ -46,7 +47,7 @@ abstract class AbstractProcess
         }
 
         if(isset($namespaces)){
-            $namespaces = isset($namespaces[$entityReflection->getName()]) ? $namespaces[$entityReflection->getName()] : array();
+            $namespaces = isset($namespaces[$entityReflection]) ? $namespaces[$entityReflection] : array();
             return $this->processNamespacesFromMap($namespaces, $entity);
         }else{
             $namespaces = $this->em->getConfiguration()
