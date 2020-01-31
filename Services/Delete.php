@@ -3,6 +3,8 @@
 namespace Xcentric\SoftDeleteableExtensionBundle\Services;
 
 use Gedmo\Mapping\ExtensionMetadataFactory;
+use Xcentric\SoftDeleteableExtensionBundle\Entity\DeletableAware;
+use Xcentric\SoftDeleteableExtensionBundle\Exception\OnSoftDeleteNotDeletableAssociationException;
 use Xcentric\SoftDeleteableExtensionBundle\Exception\OnSoftDeleteUknownTypeException;
 
 class Delete extends AbstractProcess
@@ -27,6 +29,10 @@ class Delete extends AbstractProcess
         }
         $meta = $this->em->getClassMetadata($namespace);
         foreach ($objects as $object) {
+            if ($object instanceof DeletableAware && !$object->isDeletable()) {
+                throw new OnSoftDeleteNotDeletableAssociationException('Association: ' . $meta->name . ' not deletable.');
+            }
+
             if (strtoupper($deleteType) === 'SET NULL') {
                 $reflProp = $meta->getReflectionProperty($property->name);
                 $oldValue = $reflProp->getValue($object);
