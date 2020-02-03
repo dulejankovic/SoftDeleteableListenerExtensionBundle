@@ -105,6 +105,21 @@ class GenerateClassMapCommand extends ContainerAwareCommand
             }
         }
 
+        foreach ($namespaces as $namespace) {
+            $reflectionClass = new \ReflectionClass($namespace);
+            if ($reflectionClass->isAbstract()) {
+                continue;
+            }
+
+            $parent = $reflectionClass->getParentClass();
+            if($parent && isset($map[$parent->getName()])){
+                if(!isset($map[$namespace])){
+                    $map[$namespace] = [];
+                }
+                $map[$namespace] = array_merge($map[$namespace], $map[$parent->getName()]);
+            }
+        }
+
         $yaml = Yaml::dump($map);
 
         file_put_contents($filePath, $yaml);
