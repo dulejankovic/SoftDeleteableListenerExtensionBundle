@@ -55,6 +55,7 @@ abstract class AbstractProcess
                 ->getAllClassNames();
         }
 
+        $entityReflection = new \ReflectionObject($entity);
         $reader = new AnnotationReader();
         foreach ($namespaces as $namespace) {
             $reflectionClass = new \ReflectionClass($namespace);
